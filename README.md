@@ -1,4 +1,11 @@
 # LinkageView
+安装
+参考:https://pub.dev/packages/linkageview
+
+```dart
+dependencies:
+  linkageview: ^0.0.4
+```
 
 联动的双排listview,应用在菜单列表中.可以设置粘性头部和自定义各个item.
 
