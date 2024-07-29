@@ -4,7 +4,7 @@
 
 ```dart
 dependencies:
-  linkageview: ^0.0.4
+  linkageview: ^0.0.5
 ```
 
 联动的双排listview,应用在菜单列表中.可以设置粘性头部和自定义各个item.
@@ -15,8 +15,8 @@ dependencies:
 
 ```dart
 import 'package:flutter/material.dart';
+import 'package:linkageview/linkage_view.dart';
 
-import 'linkage_view.dart';
 
 
 /// 经营
@@ -26,15 +26,14 @@ class HomePage extends StatefulWidget {
 }
 
 class MyBaseItem extends BaseItem {
-  MyBaseItem({bool isHeader, String header, dynamic info, String title})
+  MyBaseItem({bool isHeader = false, String header = "", dynamic info,  String? title})
       : super(isHeader: isHeader, header: header, info: info, title: title);
 }
 
 class _HomePageState extends State<HomePage> {
-  List<MyBaseItem> myitems;
+  late List<MyBaseItem>? myitems;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     myitems = [
       MyBaseItem(isHeader: true, header: "水果"),

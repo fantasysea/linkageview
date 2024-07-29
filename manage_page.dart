@@ -15,7 +15,7 @@ class MyBaseItem extends BaseItem {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<MyBaseItem>? myitems;
+  late List<MyBaseItem>? myitems;
   @override
   void initState() {
     super.initState();
