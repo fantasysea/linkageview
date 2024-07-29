@@ -2,19 +2,29 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 typedef Widget GetHearWidget<M extends BaseItem>(BuildContext context, M item);
-typedef Widget GetGeneralItem<M extends BaseItem>(BuildContext context, int index, M item);
-typedef Widget GetGroupItem<M extends BaseItem>(BuildContext context, int index, M item);
-typedef void OnGroupItemTap<M extends BaseItem>(BuildContext context, int index, M item);
+typedef Widget GetGeneralItem<M extends BaseItem>(
+    BuildContext context, int index, M item);
+typedef Widget GetGroupItem<M extends BaseItem>(
+    BuildContext context, int index, M item);
+typedef void OnGroupItemTap<M extends BaseItem>(
+    BuildContext context, int index, M item);
 
 class BaseItem {
   bool isHeader;
   String header;
   bool isSelect;
-  String title;
+  String? title;
   dynamic info;
   int index;
 
-  BaseItem({this.isHeader, this.header, this.info, this.title});
+  BaseItem({
+    this.isHeader = false,
+    this.header = "",
+    this.isSelect = false,
+    this.title,
+    this.info,
+    this.index = 0,
+  });
 }
 
 /// 双列表菜单
@@ -103,17 +113,17 @@ class LinkageView<T extends BaseItem> extends StatefulWidget {
   final List<T> groups = [];
 
   LinkageView(
-      {this.items,
-      this.itemBuilder,
-      this.groupItemBuilder,
-      this.headerBuilder,
-      this.onGroupItemTap,
+      {required this.items,
+      required this.itemBuilder,
+      required this.groupItemBuilder,
+      required this.headerBuilder,
+      required this.onGroupItemTap,
       this.isNeedStick = true,
       this.curve = Curves.linear,
       this.itemHeadHeight = 30,
       this.itemHeight = 50,
       this.itemGroupHeight = 50,
-      this.duration,
+      required this.duration,
       this.flexLeft = 1,
       this.flexRight = 3}) {
     for (var i = 0; i < items.length; i++) {
@@ -135,12 +145,12 @@ class _LinkageViewState<T extends BaseItem> extends State<LinkageView> {
   int selectIndex = 0;
   bool showTopHeader = false;
   double headerOffset = 0.0;
-  T headerStr;
+  BaseItem? headerStr;
   double beforeScroll = 0.0;
-  VoidCallback callback;
-  ScrollController scrollController;
-  ScrollController groupScrollController;
-  Size containerSize;
+  late VoidCallback callback;
+  ScrollController scrollController = ScrollController();
+  ScrollController groupScrollController = ScrollController();
+  late Size? containerSize;
   @override
   void initState() {
     super.initState();
@@ -153,13 +163,18 @@ class _LinkageViewState<T extends BaseItem> extends State<LinkageView> {
   }
 
   GlobalKey _containerKey = GlobalKey();
-  _onBuildCompleted(Duration timestamp) {
-    final RenderBox containerRenderBox = _containerKey.currentContext.findRenderObject();
-    containerSize = containerRenderBox.size;
+  void _onBuildCompleted(Duration timestamp) {
+    final RenderBox? containerRenderBox =
+        _containerKey.currentContext?.findRenderObject() as RenderBox?;
+    if (containerRenderBox != null) {
+      setState(() {
+        containerSize = containerRenderBox.size;
+      });
+    }
   }
 
   Widget groupItem(BuildContext context, int index) {
-    T item = widget.groups[index];
+    BaseItem item = widget.groups[index];
     return GestureDetector(
       onTap: () {
         print("$index tap");
@@ -169,12 +184,16 @@ class _LinkageViewState<T extends BaseItem> extends State<LinkageView> {
           selectIndex = index;
           double tempLength = 0.0;
           for (var i = 0; i < widget.groups[index].index; i++) {
-            double currentHeight = widget.items[i].isHeader ? widget.itemHeadHeight : widget.itemHeight;
+            double currentHeight = widget.items[i].isHeader
+                ? widget.itemHeadHeight
+                : widget.itemHeight;
             tempLength += currentHeight;
           }
           selected = true;
           scrollController
-              .animateTo(tempLength, duration: Duration(milliseconds: widget.duration), curve: Curves.linear)
+              .animateTo(tempLength,
+                  duration: Duration(milliseconds: widget.duration),
+                  curve: Curves.linear)
               .whenComplete(() {
             selected = false;
             print("异步任务处理完成");
@@ -189,7 +208,7 @@ class _LinkageViewState<T extends BaseItem> extends State<LinkageView> {
   }
 
   Widget generalItem(BuildContext context, int index) {
-    T item = widget.items[index];
+    BaseItem item = widget.items[index];
     if (item.isHeader) {
       return Container(
         child: widget.itemBuilder(context, index, item),
@@ -205,88 +224,89 @@ class _LinkageViewState<T extends BaseItem> extends State<LinkageView> {
 
   //初始化控制器和分组
   init() {
-    if (scrollController == null) {
-      scrollController = ScrollController();
-    }
-    if (groupScrollController == null) {
-      groupScrollController = ScrollController();
-    }
+    // if (scrollController == null) {
+    //   scrollController = ScrollController();
+    // }
+    // if (groupScrollController == null) {
+    //   groupScrollController = ScrollController();
+    // }
     headerStr = widget.items.first;
-    if (scrollController != null) {
-      callback = () {
-        double offset2 = scrollController.offset;
-        if (offset2 >= 0) {
-          if (mounted) {
-            setState(() {
-              showTopHeader = true;
-            });
-          }
-        } else {
-          if (mounted) {
-            setState(() {
-              showTopHeader = false;
-            });
-          }
+    callback = () {
+      double offset2 = scrollController.offset;
+      if (offset2 >= 0) {
+        if (mounted) {
+          setState(() {
+            showTopHeader = true;
+          });
         }
-        //计算滑动了多少距离了
-        double pixels = scrollController.position.pixels;
-        // print("pixels is $pixels");
-        double tempLength = 0.0;
-        int position;
-        double offset;
-        double currentHeight;
+      } else {
+        if (mounted) {
+          setState(() {
+            showTopHeader = false;
+          });
+        }
+      }
+      //计算滑动了多少距离了
+      double pixels = scrollController.position.pixels;
+      // print("pixels is $pixels");
+      double tempLength = 0.0;
+      int position = 0;
+      double offset;
+      double currentHeight = 0;
 
-        for (var i = 0; i < widget.items.length; i++) {
-          currentHeight = widget.items[i].isHeader ? widget.itemHeadHeight : widget.itemHeight;
-          tempLength += currentHeight;
-          if (widget.items[i].isHeader) {
-            headerStr.isSelect = false;
-            headerStr = widget.items[i];
-            headerStr.isSelect = true;
-          }
-          //滚动的大小没有超过最大的item index,那么当前地一个item的下标就是index
-          if (tempLength >= pixels) {
-            position = i;
-            break;
-          }
+      for (var i = 0; i < widget.items.length; i++) {
+        currentHeight = widget.items[i].isHeader
+            ? widget.itemHeadHeight
+            : widget.itemHeight;
+        tempLength += currentHeight;
+        if (widget.items[i].isHeader) {
+          headerStr?.isSelect = false;
+          headerStr = widget.items[i];
+          headerStr?.isSelect = true;
         }
-        if (widget.items[position + 1].isHeader) {
-          //如果下一个是header,又刚刚滚定到临界点,那么group往下一个
-          if (tempLength == pixels) {
-            headerStr.isSelect = false;
-            headerStr = widget.items[position + 1];
-            headerStr.isSelect = true;
-          }
-          if (mounted) {
-            setState(() {
-              offset = currentHeight - (tempLength - pixels);
-              if (offset - (widget.itemHeight - widget.itemHeadHeight) >= 0) {
-                headerOffset = -(offset - (widget.itemHeight - widget.itemHeadHeight));
-              }
-            });
-          }
-        } else {
-          if (headerOffset != 0) {
-            if (mounted) {
-              setState(() {
-                headerOffset = 0.0;
-              });
+        //滚动的大小没有超过最大的item index,那么当前地一个item的下标就是index
+        if (tempLength >= pixels) {
+          position = i;
+          break;
+        }
+      }
+      if (widget.items[position + 1].isHeader) {
+        //如果下一个是header,又刚刚滚定到临界点,那么group往下一个
+        if (tempLength == pixels) {
+          headerStr?.isSelect = false;
+          headerStr = widget.items[position + 1];
+          headerStr?.isSelect = true;
+        }
+        if (mounted) {
+          setState(() {
+            offset = currentHeight - (tempLength - pixels);
+            if (offset - (widget.itemHeight - widget.itemHeadHeight) >= 0) {
+              headerOffset =
+                  -(offset - (widget.itemHeight - widget.itemHeadHeight));
             }
+          });
+        }
+      } else {
+        if (headerOffset != 0) {
+          if (mounted) {
+            setState(() {
+              headerOffset = 0.0;
+            });
           }
         }
-        // if (!selected) {
-        resetGroupPosition();
-        // }
-      };
-      headerStr.isSelect = true;
+      }
+      // if (!selected) {
+      resetGroupPosition();
+      // }
+    };
+    headerStr?.isSelect = true;
 
-      scrollController.addListener(callback);
-    }
+    scrollController.addListener(callback);
   }
 
   resetGroupPosition() {
     if (containerSize != null) {
-      int index;
+      int index = 0;
       if (!selected) {
         for (var i = 0; i < widget.groups.length; i++) {
           if (headerStr == widget.groups[i]) {
@@ -300,14 +320,20 @@ class _LinkageViewState<T extends BaseItem> extends State<LinkageView> {
       double currentLength = widget.itemGroupHeight * (index + 1);
       double offset = 0;
 
-      if (currentLength > containerSize.height / 2 &&
-          widget.groups.length * widget.itemGroupHeight > containerSize.height) {
-        offset = ((currentLength - containerSize.height / 2) / widget.itemGroupHeight.round()) * widget.itemGroupHeight;
-        if (offset + containerSize.height > widget.groups.length * widget.itemGroupHeight) {
-          offset = widget.groups.length * widget.itemGroupHeight - containerSize.height;
+      if (currentLength > containerSize!.height / 2 &&
+          widget.groups.length * widget.itemGroupHeight >
+              containerSize!.height) {
+        offset = ((currentLength - containerSize!.height / 2) /
+                widget.itemGroupHeight.round()) *
+            widget.itemGroupHeight;
+        if (offset + containerSize!.height >
+            widget.groups.length * widget.itemGroupHeight) {
+          offset = widget.groups.length * widget.itemGroupHeight -
+              containerSize!.height;
         }
         groupScrollController.animateTo(offset,
-            duration: Duration(milliseconds: widget.duration), curve: Curves.linear);
+            duration: Duration(milliseconds: widget.duration),
+            curve: Curves.linear);
       }
 
       // if ((currentLength - (widget.itemGroupHeight / 2)) >= containerSize.height / 2 &&
@@ -319,13 +345,15 @@ class _LinkageViewState<T extends BaseItem> extends State<LinkageView> {
 
       //   groupScrollController.animateTo(offset, duration: Duration(milliseconds: widget.duration), curve: Curves.ease);
       // }
-      if (currentLength <= containerSize.height / 2 && offset < widget.itemGroupHeight) {
+      if (currentLength <= containerSize!.height / 2 &&
+          offset < widget.itemGroupHeight) {
         offset = 0;
         groupScrollController.animateTo(offset,
-            duration: Duration(milliseconds: widget.duration), curve: Curves.linear);
+            duration: Duration(milliseconds: widget.duration),
+            curve: Curves.linear);
       }
       print(
-          "currentLength is $currentLength offset is $offset   ${(currentLength - (widget.itemGroupHeight / 2))} ${containerSize.height / 2}");
+          "currentLength is $currentLength offset is $offset   ${(currentLength - (widget.itemGroupHeight / 2))} ${containerSize!.height / 2}");
     }
   }
 
@@ -382,7 +410,7 @@ class _LinkageViewState<T extends BaseItem> extends State<LinkageView> {
                   transform: Matrix4.translationValues(0.0, headerOffset, 0.0),
                   width: double.infinity,
                   height: widget.itemHeadHeight,
-                  child: widget.headerBuilder(context, headerStr),
+                  child: widget.headerBuilder(context, headerStr!),
                 ),
               )
             ]),

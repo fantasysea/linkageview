@@ -1,11 +1,11 @@
 name: linkageview
 description: A new Flutter package project.
-version: 0.0.3
+version: 0.0.5
 author: steve
 homepage: https://github.com/fantasysea
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   flutter:

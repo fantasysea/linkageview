@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:linkageview/linkage_view.dart';
 
-
-
 /// 经营
 class HomePage extends StatefulWidget {
   @override
@@ -10,20 +8,31 @@ class HomePage extends StatefulWidget {
 }
 
 class MyBaseItem extends BaseItem {
-  MyBaseItem({bool isHeader = false, String header = "", dynamic info,  String? title})
+  String? image;
+  MyBaseItem({bool isHeader = false, String header = "", dynamic info,  String? title, this.image})
       : super(isHeader: isHeader, header: header, info: info, title: title);
 }
 
 class _HomePageState extends State<HomePage> {
-  List<MyBaseItem>? myitems;
+  late List<MyBaseItem> myitems;
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
     myitems = [
       MyBaseItem(isHeader: true, header: "水果"),
-      MyBaseItem(isHeader: false, title: "苹果"),
-      MyBaseItem(isHeader: false, title: "香蕉"),
-      MyBaseItem(isHeader: false, title: "西瓜"),
+      MyBaseItem(
+          isHeader: false,
+          title: "苹果",
+          image:"https://img.yimutian.com/sells/669162c42d211f7102d2e4600426027d-420-420C.jpeg"),
+      MyBaseItem(
+          isHeader: false,
+          title: "香蕉",
+          image: "https://img0.baidu.com/it/u=710345398,3425592859&fm=253&fmt=auto&app=120&f=JPEG?w=399&h=399"),
+      MyBaseItem(
+          isHeader: false,
+          title: "西瓜",
+          image:"https://img1.baidu.com/it/u=2405919633,2651340377&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500`"),
       MyBaseItem(isHeader: false, title: "菠萝"),
       MyBaseItem(isHeader: true, header: "水果2"),
       MyBaseItem(isHeader: false, title: "苹果"),
@@ -115,7 +124,7 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Container(
           width: double.infinity,
-          height: 300,
+          height: double.infinity,
           child: LinkageView<MyBaseItem>(
             items: myitems,
             duration: 500,
@@ -123,30 +132,46 @@ class _HomePageState extends State<HomePage> {
             itemHeadHeight: 50,
             itemHeight: 80,
             itemBuilder: (content, index, item) {
+              if ((item as MyBaseItem).image == null) {
+                (item as MyBaseItem).image ="https://img1.baidu.com/it/u=1118776306,4257685841&fm=253&fmt=auto&app=120&f=JPEG?w=399&h=399";
+              }
               if (item.isHeader) {
                 return Container(
-                    child: Container(
-                        child: Container(
-                            padding: const EdgeInsets.all(0), color: Colors.grey[100], child: Text(item.header))));
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.all(0),
+                    color: Colors.white,
+                    child: Text(item.header),
+                  ),
+                );
               } else {
-                return Container(padding: const EdgeInsets.all(8), color: Colors.green[100], child: Text(item.title));
+                return Container(
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.white,
+                    child: Row(
+                        children: [Image.network(item.image!), SizedBox(width: 10), Text(item.title!)]));
               }
             },
             groupItemBuilder: (content, index, item) {
               return Container(
                 height: 50,
                 padding: const EdgeInsets.all(8),
-                color: item.isSelect ? Colors.blue[100] : Colors.green[100],
+                color: item.isSelect ? Colors.white : Colors.grey[200],
                 child: Text(item.header),
               );
             },
-            onGroupItemTap:(content, index, item) {
+            onGroupItemTap: (content, index, item) {
               print("tab is ${item.header} click");
             },
             headerBuilder: (content, item) {
               return Container(
-                color: Colors.yellow[100],
-                child: new Text(item.header),
+                child: Container(
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.all(0),
+                  color: Colors.white,
+                  child: Text(item.header),
+                ),
               );
             },
           ),
